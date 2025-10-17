@@ -1,0 +1,394 @@
+2025-10-10 01:44:39,458 - INFO - Database connection established
+2025-10-10 01:44:39,458 - INFO - UserModel initialized successfully
+2025-10-10 01:45:04,806 - INFO - New connection from ('192.168.1.7', 61456)
+2025-10-10 01:45:04,806 - INFO - New client session started
+2025-10-10 01:45:04,807 - DEBUG - Received action: login from client
+2025-10-10 01:45:05,017 - INFO - User logged in: huuhoan@gmail.com
+2025-10-10 01:45:05,018 - INFO - User 7 logged in
+2025-10-10 01:45:05,069 - DEBUG - Response sent: login
+2025-10-10 01:45:05,104 - DEBUG - Received action: get_users from client
+2025-10-10 01:45:05,156 - DEBUG - Response sent: get_users
+2025-10-10 01:45:05,164 - DEBUG - Received action: get_chat_history from client
+2025-10-10 01:45:05,166 - DEBUG - Chat history sent for receiver 1
+2025-10-10 01:45:05,217 - DEBUG - Response sent: get_chat_history
+2025-10-10 01:45:09,718 - DEBUG - Received action: get_chat_history from client
+2025-10-10 01:45:09,743 - DEBUG - Chat history sent for receiver 6
+2025-10-10 01:45:09,797 - DEBUG - Response sent: get_chat_history
+2025-10-10 01:45:10,358 - DEBUG - Received action: get_chat_history from client
+2025-10-10 01:45:10,361 - DEBUG - Chat history sent for receiver 1
+2025-10-10 01:45:10,412 - DEBUG - Response sent: get_chat_history
+2025-10-10 01:45:10,907 - DEBUG - Received action: get_chat_history from client
+2025-10-10 01:45:10,908 - DEBUG - Chat history sent for receiver 2
+2025-10-10 01:45:10,958 - DEBUG - Response sent: get_chat_history
+2025-10-10 01:45:12,165 - DEBUG - Received action: get_chat_history from client
+2025-10-10 01:45:12,171 - DEBUG - Chat history sent for receiver 5
+2025-10-10 01:45:12,224 - DEBUG - Response sent: get_chat_history
+2025-10-10 01:45:13,229 - DEBUG - Received action: get_chat_history from client
+2025-10-10 01:45:13,240 - DEBUG - Chat history sent for receiver 6
+2025-10-10 01:45:13,297 - DEBUG - Response sent: get_chat_history
+2025-10-10 01:45:14,015 - DEBUG - Received action: get_chat_history from client
+2025-10-10 01:45:14,018 - DEBUG - Chat history sent for receiver 8
+2025-10-10 01:45:14,069 - DEBUG - Response sent: get_chat_history
+2025-10-10 01:45:14,492 - DEBUG - Received action: get_chat_history from client
+2025-10-10 01:45:14,493 - DEBUG - Chat history sent for receiver 9
+2025-10-10 01:45:14,544 - DEBUG - Response sent: get_chat_history
+2025-10-10 01:45:14,885 - DEBUG - Received action: get_chat_history from client
+2025-10-10 01:45:14,893 - DEBUG - Chat history sent for receiver 6
+2025-10-10 01:45:14,951 - DEBUG - Response sent: get_chat_history
+2025-10-10 01:45:15,911 - DEBUG - Received action: get_chat_history from client
+2025-10-10 01:45:15,918 - DEBUG - Chat history sent for receiver 6
+2025-10-10 01:45:15,974 - DEBUG - Response sent: get_chat_history
+2025-10-10 01:45:21,687 - ERROR - Socket error: [WinError 10054] An existing connection was forcibly closed by the remote host
+2025-10-10 01:45:21,687 - INFO - User 7 disconnected
+2025-10-10 01:45:21,687 - INFO - Client connection closed
+2025-10-10 01:45:21,696 - INFO - New connection from ('192.168.1.7', 54970)
+2025-10-10 01:45:21,696 - INFO - New client session started
+2025-10-10 01:46:40,304 - INFO - New connection from ('192.168.1.7', 55998)
+2025-10-10 01:46:40,305 - INFO - New client session started
+2025-10-10 01:46:40,305 - DEBUG - Received action: login from client
+2025-10-10 01:46:40,513 - INFO - User logged in: huuhoan@gmail.com
+2025-10-10 01:46:40,514 - INFO - User 7 logged in
+2025-10-10 01:46:40,565 - DEBUG - Response sent: login
+2025-10-10 01:46:40,600 - DEBUG - Received action: get_users from client
+2025-10-10 01:46:40,651 - DEBUG - Response sent: get_users
+2025-10-10 01:46:40,662 - DEBUG - Received action: get_chat_history from client
+2025-10-10 01:46:40,664 - DEBUG - Chat history sent for receiver 1
+2025-10-10 01:46:40,716 - DEBUG - Response sent: get_chat_history
+2025-10-10 01:46:52,812 - INFO - New connection from ('192.168.1.7', 52445)
+2025-10-10 01:46:52,813 - INFO - New client session started
+2025-10-10 01:46:52,813 - DEBUG - Received action: login from client
+2025-10-10 01:46:53,014 - INFO - User logged in: bo@gmail.com
+2025-10-10 01:46:53,015 - INFO - User 6 logged in
+2025-10-10 01:46:53,066 - DEBUG - Response sent: login
+2025-10-10 01:46:53,086 - DEBUG - Received action: get_users from client
+2025-10-10 01:46:53,138 - DEBUG - Response sent: get_users
+2025-10-10 01:46:53,142 - DEBUG - Received action: get_chat_history from client
+2025-10-10 01:46:53,142 - DEBUG - Chat history sent for receiver 1
+2025-10-10 01:46:53,193 - DEBUG - Response sent: get_chat_history
+2025-10-10 01:46:56,292 - DEBUG - Received action: get_chat_history from client
+2025-10-10 01:46:56,297 - DEBUG - Chat history sent for receiver 6
+2025-10-10 01:46:56,350 - DEBUG - Response sent: get_chat_history
+2025-10-10 01:46:57,886 - DEBUG - Received action: get_chat_history from client
+2025-10-10 01:46:57,895 - DEBUG - Chat history sent for receiver 7
+2025-10-10 01:46:57,949 - DEBUG - Response sent: get_chat_history
+2025-10-10 01:47:12,326 - DEBUG - Received action: send_voice from client
+2025-10-10 01:47:12,360 - DEBUG - Voice message saved: 6 -> 7
+2025-10-10 01:47:12,362 - DEBUG - Voice sent to user 7
+2025-10-10 01:47:12,413 - DEBUG - Response sent: send_voice
+2025-10-10 01:47:38,584 - DEBUG - Received action: send_voice from client
+2025-10-10 01:47:38,607 - DEBUG - Voice message saved: 7 -> 6
+2025-10-10 01:47:38,609 - DEBUG - Voice sent to user 6
+2025-10-10 01:47:38,659 - DEBUG - Response sent: send_voice
+2025-10-10 01:48:10,210 - DEBUG - Received action: message from client
+2025-10-10 01:48:10,215 - DEBUG - Message saved: 6 -> 7
+2025-10-10 01:48:10,216 - DEBUG - Message sent to user 7
+2025-10-10 01:48:10,267 - DEBUG - Response sent: message
+2025-10-10 01:50:21,700 - WARNING - Connection timed out
+2025-10-10 01:50:21,701 - INFO - Client connection closed
+2025-10-10 01:52:16,566 - ERROR - Socket error: [WinError 10054] An existing connection was forcibly closed by the remote host
+2025-10-10 01:52:16,566 - INFO - New connection from ('192.168.1.7', 65354)
+2025-10-10 01:52:16,566 - INFO - User 6 disconnected
+2025-10-10 01:52:16,567 - INFO - Client connection closed
+2025-10-10 01:52:16,567 - INFO - New client session started
+2025-10-10 01:52:16,605 - ERROR - Socket error: [WinError 10054] An existing connection was forcibly closed by the remote host
+2025-10-10 01:52:16,605 - INFO - Client connection closed
+2025-10-10 01:52:17,142 - ERROR - Socket error: [WinError 10054] An existing connection was forcibly closed by the remote host
+2025-10-10 01:52:17,142 - INFO - New connection from ('192.168.1.7', 65355)
+2025-10-10 01:52:17,142 - INFO - User 7 disconnected
+2025-10-10 01:52:17,143 - INFO - Client connection closed
+2025-10-10 01:52:17,143 - INFO - New client session started
+2025-10-10 01:52:17,178 - ERROR - Socket error: [WinError 10054] An existing connection was forcibly closed by the remote host
+2025-10-10 01:52:17,178 - INFO - Client connection closed
+2025-10-10 13:48:47,668 - INFO - Database connection established
+2025-10-10 13:48:47,668 - INFO - UserModel initialized successfully
+2025-10-10 13:51:47,141 - INFO - New connection from ('10.50.204.203', 59062)
+2025-10-10 13:51:47,142 - INFO - New client session started
+2025-10-10 13:51:47,143 - DEBUG - Received action: login from client
+2025-10-10 13:51:47,809 - INFO - User logged in: huuhoan@gmail.com
+2025-10-10 13:51:47,811 - INFO - User 7 logged in
+2025-10-10 13:51:47,862 - DEBUG - Response sent: login
+2025-10-10 13:51:47,925 - DEBUG - Received action: get_users from client
+2025-10-10 13:51:47,979 - DEBUG - Response sent: get_users
+2025-10-10 13:51:48,000 - DEBUG - Received action: get_chat_history from client
+2025-10-10 13:51:48,008 - DEBUG - Chat history sent for receiver 1
+2025-10-10 13:51:48,059 - DEBUG - Response sent: get_chat_history
+2025-10-10 13:51:56,647 - INFO - New connection from ('10.50.204.203', 59063)
+2025-10-10 13:51:56,648 - INFO - New client session started
+2025-10-10 13:51:56,649 - DEBUG - Received action: login from client
+2025-10-10 13:51:57,169 - INFO - User logged in: bo@gmail.com
+2025-10-10 13:51:57,172 - INFO - User 6 logged in
+2025-10-10 13:51:57,223 - DEBUG - Response sent: login
+2025-10-10 13:51:57,426 - DEBUG - Received action: get_users from client
+2025-10-10 13:51:57,478 - DEBUG - Response sent: get_users
+2025-10-10 13:51:57,529 - DEBUG - Received action: get_chat_history from client
+2025-10-10 13:51:57,532 - DEBUG - Chat history sent for receiver 1
+2025-10-10 13:51:57,583 - DEBUG - Response sent: get_chat_history
+2025-10-10 13:52:05,341 - DEBUG - Received action: get_chat_history from client
+2025-10-10 13:52:05,343 - DEBUG - Chat history sent for receiver 6
+2025-10-10 13:52:05,394 - DEBUG - Response sent: get_chat_history
+2025-10-10 13:52:08,260 - DEBUG - Received action: get_chat_history from client
+2025-10-10 13:52:08,261 - DEBUG - Chat history sent for receiver 7
+2025-10-10 13:52:08,312 - DEBUG - Response sent: get_chat_history
+2025-10-10 13:52:10,406 - DEBUG - Received action: message from client
+2025-10-10 13:52:10,432 - DEBUG - Message saved: 6 -> 7
+2025-10-10 13:52:10,433 - DEBUG - Message sent to user 7
+2025-10-10 13:52:10,484 - DEBUG - Response sent: message
+2025-10-10 13:52:14,147 - DEBUG - Received action: message from client
+2025-10-10 13:52:14,152 - DEBUG - Message saved: 7 -> 6
+2025-10-10 13:52:14,153 - DEBUG - Message sent to user 6
+2025-10-10 13:52:14,205 - DEBUG - Response sent: message
+2025-10-10 13:52:28,221 - DEBUG - Received action: send_image from client
+2025-10-10 13:52:28,226 - DEBUG - Image message saved: 7 -> 6
+2025-10-10 13:52:28,227 - DEBUG - Image sent to user 6
+2025-10-10 13:52:28,278 - DEBUG - Response sent: send_image
+2025-10-10 13:52:33,156 - DEBUG - Received action: message from client
+2025-10-10 13:52:33,165 - DEBUG - Message saved: 7 -> 6
+2025-10-10 13:52:33,166 - DEBUG - Message sent to user 6
+2025-10-10 13:52:33,218 - DEBUG - Response sent: message
+2025-10-10 13:54:13,476 - INFO - New connection from ('10.50.204.203', 60703)
+2025-10-10 13:54:13,477 - INFO - New client session started
+2025-10-10 13:54:13,478 - DEBUG - Received action: login from client
+2025-10-10 13:54:13,996 - INFO - User logged in: my@gmail.com
+2025-10-10 13:54:13,998 - INFO - User 5 logged in
+2025-10-10 13:54:14,049 - DEBUG - Response sent: login
+2025-10-10 13:54:14,106 - DEBUG - Received action: get_users from client
+2025-10-10 13:54:14,158 - DEBUG - Response sent: get_users
+2025-10-10 13:54:14,170 - DEBUG - Received action: get_chat_history from client
+2025-10-10 13:54:14,172 - DEBUG - Chat history sent for receiver 1
+2025-10-10 13:54:14,223 - DEBUG - Response sent: get_chat_history
+2025-10-10 13:54:20,472 - DEBUG - Received action: get_chat_history from client
+2025-10-10 13:54:20,474 - DEBUG - Chat history sent for receiver 5
+2025-10-10 13:54:20,525 - DEBUG - Response sent: get_chat_history
+2025-10-10 13:54:23,199 - DEBUG - Received action: message from client
+2025-10-10 13:54:23,205 - DEBUG - Message saved: 6 -> 5
+2025-10-10 13:54:23,207 - DEBUG - Message sent to user 5
+2025-10-10 13:54:23,258 - DEBUG - Response sent: message
+2025-10-10 13:54:52,849 - INFO - No data received, closing connection
+2025-10-10 13:54:52,849 - INFO - User 6 disconnected
+2025-10-10 13:54:52,849 - INFO - Client connection closed
+2025-10-10 13:54:52,902 - INFO - New connection from ('10.50.204.203', 61369)
+2025-10-10 13:54:52,903 - INFO - New client session started
+2025-10-10 13:54:53,140 - INFO - No data received, closing connection
+2025-10-10 13:54:53,141 - INFO - Client connection closed
+2025-10-10 13:54:55,173 - ERROR - Socket error: [WinError 10054] An existing connection was forcibly closed by the remote host
+2025-10-10 13:54:55,173 - INFO - New connection from ('10.50.204.203', 61370)
+2025-10-10 13:54:55,173 - INFO - User 7 disconnected
+2025-10-10 13:54:55,174 - INFO - Client connection closed
+2025-10-10 13:54:55,174 - INFO - New client session started
+2025-10-10 13:54:55,215 - ERROR - Socket error: [WinError 10054] An existing connection was forcibly closed by the remote host
+2025-10-10 13:54:55,215 - INFO - Client connection closed
+2025-10-10 13:54:55,950 - INFO - New connection from ('10.50.204.203', 61371)
+2025-10-10 13:54:55,952 - ERROR - Socket error: [WinError 10054] An existing connection was forcibly closed by the remote host
+2025-10-10 13:54:55,952 - INFO - User 5 disconnected
+2025-10-10 13:54:55,952 - INFO - New client session started
+2025-10-10 13:54:55,953 - INFO - Client connection closed
+2025-10-10 13:54:55,986 - ERROR - Socket error: [WinError 10054] An existing connection was forcibly closed by the remote host
+2025-10-10 13:54:55,986 - INFO - Client connection closed
+2025-10-10 14:05:25,852 - INFO - Database connection established
+2025-10-10 14:05:25,853 - INFO - UserModel initialized successfully
+2025-10-10 14:07:02,530 - INFO - Database connection established
+2025-10-10 14:07:02,530 - INFO - UserModel initialized successfully
+2025-10-10 14:16:53,890 - INFO - New connection from ('192.168.45.123', 60827)
+2025-10-10 14:16:53,891 - INFO - New client session started
+2025-10-10 14:16:53,892 - DEBUG - Received action: login from client
+2025-10-10 14:16:54,511 - INFO - User logged in: huuhoan@gmail.com
+2025-10-10 14:16:54,514 - INFO - User 7 logged in
+2025-10-10 14:16:54,565 - DEBUG - Response sent: login
+2025-10-10 14:16:54,725 - DEBUG - Received action: get_users from client
+2025-10-10 14:16:54,777 - DEBUG - Response sent: get_users
+2025-10-10 14:16:54,797 - DEBUG - Received action: get_chat_history from client
+2025-10-10 14:16:54,799 - DEBUG - Chat history sent for receiver 1
+2025-10-10 14:16:54,850 - DEBUG - Response sent: get_chat_history
+2025-10-10 14:17:40,085 - INFO - New connection from ('192.168.45.123', 60775)
+2025-10-10 14:17:40,086 - INFO - New client session started
+2025-10-10 14:17:40,086 - DEBUG - Received action: login from client
+2025-10-10 14:17:40,715 - DEBUG - Response sent: login
+2025-10-10 14:17:40,719 - INFO - No data received, closing connection
+2025-10-10 14:17:40,720 - INFO - Client connection closed
+2025-10-10 14:17:46,929 - INFO - New connection from ('192.168.45.123', 60776)
+2025-10-10 14:17:46,930 - INFO - New client session started
+2025-10-10 14:17:46,930 - DEBUG - Received action: login from client
+2025-10-10 14:17:47,607 - DEBUG - Response sent: login
+2025-10-10 14:17:47,610 - INFO - No data received, closing connection
+2025-10-10 14:17:47,611 - INFO - Client connection closed
+2025-10-10 14:17:48,809 - INFO - New connection from ('192.168.45.123', 60777)
+2025-10-10 14:17:48,810 - INFO - New client session started
+2025-10-10 14:17:48,810 - DEBUG - Received action: login from client
+2025-10-10 14:17:49,450 - DEBUG - Response sent: login
+2025-10-10 14:17:49,454 - INFO - No data received, closing connection
+2025-10-10 14:17:49,455 - INFO - Client connection closed
+2025-10-10 14:18:08,307 - INFO - New connection from ('192.168.45.123', 60778)
+2025-10-10 14:18:08,307 - INFO - New client session started
+2025-10-10 14:18:08,308 - DEBUG - Received action: login from client
+2025-10-10 14:18:08,963 - DEBUG - Response sent: login
+2025-10-10 14:18:08,966 - INFO - No data received, closing connection
+2025-10-10 14:18:08,967 - INFO - Client connection closed
+2025-10-10 14:18:22,522 - INFO - New connection from ('192.168.45.123', 60780)
+2025-10-10 14:18:22,523 - INFO - New client session started
+2025-10-10 14:18:22,523 - DEBUG - Received action: login from client
+2025-10-10 14:18:23,116 - INFO - User logged in: my@gmail.com
+2025-10-10 14:18:23,118 - INFO - User 5 logged in
+2025-10-10 14:18:23,170 - DEBUG - Response sent: login
+2025-10-10 14:18:23,261 - DEBUG - Received action: get_users from client
+2025-10-10 14:18:23,313 - DEBUG - Response sent: get_users
+2025-10-10 14:18:23,326 - DEBUG - Received action: get_chat_history from client
+2025-10-10 14:18:23,327 - DEBUG - Chat history sent for receiver 1
+2025-10-10 14:18:23,378 - DEBUG - Response sent: get_chat_history
+2025-10-10 14:20:27,824 - INFO - New connection from ('192.168.45.160', 54463)
+2025-10-10 14:20:27,828 - INFO - New client session started
+2025-10-10 14:20:27,829 - DEBUG - Received action: login from client
+2025-10-10 14:20:28,434 - INFO - User logged in: kiet@gmail.com
+2025-10-10 14:20:28,436 - INFO - User 9 logged in
+2025-10-10 14:20:28,491 - DEBUG - Response sent: login
+2025-10-10 14:20:28,562 - DEBUG - Received action: get_users from client
+2025-10-10 14:20:28,614 - DEBUG - Response sent: get_users
+2025-10-10 14:20:28,748 - DEBUG - Received action: get_chat_history from client
+2025-10-10 14:20:28,750 - DEBUG - Chat history sent for receiver 1
+2025-10-10 14:20:28,801 - DEBUG - Response sent: get_chat_history
+2025-10-10 14:20:29,038 - INFO - No data received, closing connection
+2025-10-10 14:20:29,038 - INFO - User 9 disconnected
+2025-10-10 14:20:29,039 - INFO - Client connection closed
+2025-10-10 14:20:53,657 - INFO - New connection from ('192.168.45.160', 54467)
+2025-10-10 14:20:53,658 - INFO - New client session started
+2025-10-10 14:20:53,658 - DEBUG - Received action: login from client
+2025-10-10 14:20:54,208 - INFO - User logged in: kiet@gmail.com
+2025-10-10 14:20:54,210 - INFO - User 9 logged in
+2025-10-10 14:20:54,261 - DEBUG - Response sent: login
+2025-10-10 14:20:54,398 - DEBUG - Received action: get_users from client
+2025-10-10 14:20:54,451 - DEBUG - Response sent: get_users
+2025-10-10 14:20:54,590 - DEBUG - Received action: get_chat_history from client
+2025-10-10 14:20:54,591 - DEBUG - Chat history sent for receiver 1
+2025-10-10 14:20:54,642 - DEBUG - Response sent: get_chat_history
+2025-10-10 14:21:01,543 - DEBUG - Received action: get_chat_history from client
+2025-10-10 14:21:01,545 - DEBUG - Chat history sent for receiver 7
+2025-10-10 14:21:01,596 - DEBUG - Response sent: get_chat_history
+2025-10-10 14:21:02,165 - DEBUG - Received action: get_chat_history from client
+2025-10-10 14:21:02,167 - DEBUG - Chat history sent for receiver 7
+2025-10-10 14:21:02,218 - DEBUG - Response sent: get_chat_history
+2025-10-10 14:21:03,053 - DEBUG - Received action: get_chat_history from client
+2025-10-10 14:21:03,055 - DEBUG - Chat history sent for receiver 7
+2025-10-10 14:21:03,106 - DEBUG - Response sent: get_chat_history
+2025-10-10 14:21:03,595 - DEBUG - Received action: get_chat_history from client
+2025-10-10 14:21:03,597 - DEBUG - Chat history sent for receiver 9
+2025-10-10 14:21:03,647 - DEBUG - Response sent: get_chat_history
+2025-10-10 14:21:05,800 - DEBUG - Received action: message from client
+2025-10-10 14:21:05,807 - DEBUG - Message saved: 7 -> 9
+2025-10-10 14:21:05,809 - DEBUG - Message sent to user 9
+2025-10-10 14:21:05,860 - DEBUG - Response sent: message
+2025-10-10 14:21:07,287 - DEBUG - Received action: message from client
+2025-10-10 14:21:07,292 - DEBUG - Message saved: 9 -> 7
+2025-10-10 14:21:07,293 - DEBUG - Message sent to user 7
+2025-10-10 14:21:07,344 - DEBUG - Response sent: message
+2025-10-10 14:21:16,580 - DEBUG - Received action: message from client
+2025-10-10 14:21:16,586 - DEBUG - Message saved: 7 -> 9
+2025-10-10 14:21:16,589 - DEBUG - Message sent to user 9
+2025-10-10 14:21:16,640 - DEBUG - Response sent: message
+2025-10-10 14:21:22,232 - DEBUG - Received action: message from client
+2025-10-10 14:21:22,238 - DEBUG - Message saved: 9 -> 7
+2025-10-10 14:21:22,239 - DEBUG - Message sent to user 7
+2025-10-10 14:21:22,290 - DEBUG - Response sent: message
+2025-10-10 14:21:31,797 - DEBUG - Received action: get_chat_history from client
+2025-10-10 14:21:31,799 - DEBUG - Chat history sent for receiver 9
+2025-10-10 14:21:31,853 - DEBUG - Response sent: get_chat_history
+2025-10-10 14:21:36,482 - DEBUG - Received action: get_chat_history from client
+2025-10-10 14:21:36,484 - DEBUG - Chat history sent for receiver 5
+2025-10-10 14:21:36,536 - DEBUG - Response sent: get_chat_history
+2025-10-10 14:21:37,180 - DEBUG - Received action: message from client
+2025-10-10 14:21:37,185 - DEBUG - Message saved: 5 -> 9
+2025-10-10 14:21:37,186 - DEBUG - Message sent to user 9
+2025-10-10 14:21:37,238 - DEBUG - Response sent: message
+2025-10-10 14:21:39,533 - DEBUG - Received action: message from client
+2025-10-10 14:21:39,538 - DEBUG - Message saved: 9 -> 5
+2025-10-10 14:21:39,540 - DEBUG - Message sent to user 5
+2025-10-10 14:21:39,592 - DEBUG - Response sent: message
+2025-10-10 14:21:42,058 - DEBUG - Received action: message from client
+2025-10-10 14:21:42,066 - DEBUG - Message saved: 5 -> 9
+2025-10-10 14:21:42,068 - DEBUG - Message sent to user 9
+2025-10-10 14:21:42,119 - DEBUG - Response sent: message
+2025-10-10 14:21:46,092 - DEBUG - Received action: message from client
+2025-10-10 14:21:46,096 - DEBUG - Message saved: 9 -> 5
+2025-10-10 14:21:46,098 - DEBUG - Message sent to user 5
+2025-10-10 14:21:46,149 - DEBUG - Response sent: message
+2025-10-10 14:21:47,203 - DEBUG - Received action: send_image from client
+2025-10-10 14:21:47,208 - DEBUG - Image message saved: 5 -> 9
+2025-10-10 14:21:47,212 - DEBUG - Image sent to user 9
+2025-10-10 14:21:47,263 - DEBUG - Response sent: send_image
+2025-10-10 14:21:47,352 - INFO - New connection from ('192.168.45.160', 54475)
+2025-10-10 14:21:47,353 - INFO - New client session started
+2025-10-10 14:22:53,399 - INFO - No data received, closing connection
+2025-10-10 14:22:53,399 - INFO - User 7 disconnected
+2025-10-10 14:22:53,399 - INFO - Client connection closed
+2025-10-10 14:22:53,421 - INFO - New connection from ('192.168.45.123', 58226)
+2025-10-10 14:22:53,422 - INFO - New client session started
+2025-10-10 14:22:53,600 - INFO - No data received, closing connection
+2025-10-10 14:22:53,600 - INFO - Client connection closed
+2025-10-10 14:26:46,151 - WARNING - Connection timed out
+2025-10-10 14:26:46,152 - INFO - User 9 disconnected
+2025-10-10 14:26:46,152 - INFO - Client connection closed
+2025-10-10 14:26:47,270 - WARNING - Connection timed out
+2025-10-10 14:26:47,270 - INFO - User 5 disconnected
+2025-10-10 14:26:47,271 - INFO - Client connection closed
+2025-10-10 14:26:47,362 - WARNING - Connection timed out
+2025-10-10 14:26:47,363 - INFO - Client connection closed
+2025-10-10 14:27:16,116 - INFO - New connection from ('192.168.45.123', 64319)
+2025-10-10 14:27:16,117 - INFO - New client session started
+2025-10-10 14:27:16,120 - DEBUG - Received action: login from client
+2025-10-10 14:27:16,502 - INFO - User logged in: bo@gmail.com
+2025-10-10 14:27:16,503 - INFO - User 6 logged in
+2025-10-10 14:27:16,554 - DEBUG - Response sent: login
+2025-10-10 14:27:16,772 - DEBUG - Received action: get_users from client
+2025-10-10 14:27:16,824 - DEBUG - Response sent: get_users
+2025-10-10 14:27:16,854 - DEBUG - Received action: get_chat_history from client
+2025-10-10 14:27:16,856 - DEBUG - Chat history sent for receiver 1
+2025-10-10 14:27:16,907 - DEBUG - Response sent: get_chat_history
+2025-10-10 14:27:37,567 - INFO - No data received, closing connection
+2025-10-10 14:27:37,567 - INFO - User 6 disconnected
+2025-10-10 14:27:37,568 - INFO - Client connection closed
+2025-10-10 14:27:37,577 - INFO - New connection from ('192.168.45.123', 64323)
+2025-10-10 14:27:37,578 - INFO - New client session started
+2025-10-10 14:27:37,762 - INFO - No data received, closing connection
+2025-10-10 14:27:37,762 - INFO - Client connection closed
+2025-10-10 14:28:15,791 - INFO - New connection from ('192.168.45.123', 64326)
+2025-10-10 14:28:15,791 - INFO - New client session started
+2025-10-10 14:28:15,792 - DEBUG - Received action: login from client
+2025-10-10 14:28:16,369 - INFO - User logged in: bo@gmail.com
+2025-10-10 14:28:16,371 - INFO - User 6 logged in
+2025-10-10 14:28:16,422 - DEBUG - Response sent: login
+2025-10-10 14:28:16,579 - DEBUG - Received action: get_users from client
+2025-10-10 14:28:16,631 - DEBUG - Response sent: get_users
+2025-10-10 14:28:16,661 - DEBUG - Received action: get_chat_history from client
+2025-10-10 14:28:16,663 - DEBUG - Chat history sent for receiver 1
+2025-10-10 14:28:16,714 - DEBUG - Response sent: get_chat_history
+2025-10-10 14:28:23,360 - DEBUG - Received action: get_chat_history from client
+2025-10-10 14:28:23,361 - DEBUG - Chat history sent for receiver 9
+2025-10-10 14:28:23,416 - DEBUG - Response sent: get_chat_history
+2025-10-10 14:28:40,791 - DEBUG - Received action: message from client
+2025-10-10 14:28:40,798 - DEBUG - Message saved: 6 -> 9
+2025-10-10 14:28:40,800 - DEBUG - User 9 offline, message saved
+2025-10-10 14:28:40,851 - DEBUG - Response sent: message
+2025-10-10 14:28:57,672 - INFO - No data received, closing connection
+2025-10-10 14:28:57,673 - INFO - User 6 disconnected
+2025-10-10 14:28:57,673 - INFO - Client connection closed
+2025-10-10 14:28:57,685 - INFO - New connection from ('192.168.45.123', 64332)
+2025-10-10 14:28:57,694 - INFO - New client session started
+2025-10-10 14:28:58,281 - ERROR - Socket error: [WinError 10054] An existing connection was forcibly closed by the remote host
+2025-10-10 14:28:58,281 - INFO - Client connection closed
+2025-10-10 14:29:59,897 - INFO - Database connection established
+2025-10-10 14:29:59,897 - INFO - UserModel initialized successfully
+2025-10-10 14:30:11,890 - INFO - New connection from ('10.50.204.203', 60054)
+2025-10-10 14:30:11,891 - INFO - New client session started
+2025-10-10 14:30:11,892 - DEBUG - Received action: login from client
+2025-10-10 14:30:12,485 - INFO - User logged in: bo@gmail.com
+2025-10-10 14:30:12,487 - INFO - User 6 logged in
+2025-10-10 14:30:12,538 - DEBUG - Response sent: login
+2025-10-10 14:30:12,629 - DEBUG - Received action: get_users from client
+2025-10-10 14:30:12,682 - DEBUG - Response sent: get_users
+2025-10-10 14:30:12,703 - DEBUG - Received action: get_chat_history from client
+2025-10-10 14:30:12,706 - DEBUG - Chat history sent for receiver 1
+2025-10-10 14:30:12,757 - DEBUG - Response sent: get_chat_history
+2025-10-10 14:30:14,760 - DEBUG - Received action: get_chat_history from client
+2025-10-10 14:30:14,762 - DEBUG - Chat history sent for receiver 9
+2025-10-10 14:30:14,813 - DEBUG - Response sent: get_chat_history
+2025-10-10 14:35:04,384 - ERROR - Socket error: [WinError 10054] An existing connection was forcibly closed by the remote host
+2025-10-10 14:35:04,385 - INFO - User 6 disconnected
+2025-10-10 14:35:04,385 - INFO - Client connection closed

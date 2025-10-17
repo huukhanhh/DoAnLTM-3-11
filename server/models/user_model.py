@@ -1,0 +1,200 @@
+# server/models/user_model.py
+import mysql.connector
+import bcrypt
+from config.config import DATABASE_CONFIG
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class UserModel:
+    def __init__(self):
+        try:
+            self.connection = mysql.connector.connect(**DATABASE_CONFIG)
+            self.cursor = self.connection.cursor()
+            logger.info("Database connection established")
+        except mysql.connector.Error as err:
+            logger.error(f"Database connection failed: {err}")
+            raise
+
+    def get_user_id(self, email):
+        try:
+            query = "SELECT id FROM users WHERE email = %s"
+            self.cursor.execute(query, (email,))
+            result = self.cursor.fetchone()
+            return result[0] if result else None
+        except mysql.connector.Error as err:
+            logger.error(f"Error getting user_id: {err}")
+            return None
+
+    def get_display_name(self, user_id):
+        try:
+            query = "SELECT display_name FROM users WHERE id = %s"
+            self.cursor.execute(query, (user_id,))
+            result = self.cursor.fetchone()
+            return result[0] if result else "Unknown"
+        except mysql.connector.Error as err:
+            logger.error(f"Error getting display_name: {err}")
+            return "Unknown"
+
+    def get_all_users(self):
+        try:
+            query = "SELECT id, display_name FROM users"
+            self.cursor.execute(query)
+            return [{"user_id": row[0], "display_name": row[1]} for row in self.cursor.fetchall()]
+        except mysql.connector.Error as err:
+            logger.error(f"Error getting all users: {err}")
+            return []
+
+    def register_user(self, display_name, email, password):
+        try:
+            query = "SELECT email FROM users WHERE email = %s"
+            self.cursor.execute(query, (email,))
+            if self.cursor.fetchone():
+                return {"status": "error", "message": "Email đã tồn tại"}
+
+            salt = bcrypt.gensalt()
+            password_hash = bcrypt.hashpw(password.encode('utf-8'), salt)
+
+            query = "INSERT INTO users (display_name, email, password_hash) VALUES (%s, %s, %s)"
+            self.cursor.execute(query, (display_name, email, password_hash.decode('utf-8')))
+            self.connection.commit()
+
+            logger.info(f"User registered: {email}")
+            return {"status": "success", "message": "Đăng ký thành công"}
+        except mysql.connector.Error as err:
+            logger.error(f"Database error during registration: {err}")
+            return {"status": "error", "message": f"Lỗi database: {err}"}
+        except Exception as e:
+            logger.error(f"Unexpected error during registration: {e}")
+            return {"status": "error", "message": f"Lỗi: {str(e)}"}
+
+    def login_user(self, email, password):
+        try:
+            query = "SELECT id, display_name, password_hash FROM users WHERE email = %s"
+            self.cursor.execute(query, (email,))
+            result = self.cursor.fetchone()
+
+            if result:
+                user_id, display_name, password_hash = result
+                try:
+                    if bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8')):
+                        logger.info(f"User logged in: {email}")
+                        return {"status": "success", "user_id": user_id, "display_name": display_name}
+                    else:
+                        return {"status": "error", "message": "Mật khẩu sai"}
+                except ValueError as e:
+                    logger.error(f"Password hash error: {e}")
+                    return {"status": "error", "message": f"Lỗi mã hóa (Invalid salt): {str(e)}. Vui lòng đăng ký lại."}
+            else:
+                return {"status": "error", "message": "Tài khoản không tồn tại"}
+        except mysql.connector.Error as err:
+            logger.error(f"Database error during login: {err}")
+            return {"status": "error", "message": f"Lỗi database: {err}"}
+
+    def save_message(self, sender_id, receiver_id, message):
+        try:
+            query = "INSERT INTO chat_messages (sender_id, receiver_id, message, is_image) VALUES (%s, %s, %s, %s)"
+            self.cursor.execute(query, (sender_id, receiver_id, message, False))
+            self.connection.commit()
+            logger.debug(f"Message saved: {sender_id} -> {receiver_id}")
+        except mysql.connector.Error as err:
+            logger.error(f"Error saving message: {err}")
+
+    def save_image_message(self, sender_id, receiver_id, image_data, filename):
+        """Lưu tin nhắn ảnh vào database"""
+        try:
+            query = """
+                    INSERT INTO chat_messages (sender_id, receiver_id, message, is_image, image_data)
+                    VALUES (%s, %s, %s, %s, %s) \
+                    """
+            self.cursor.execute(query, (sender_id, receiver_id, filename, True, image_data))
+            self.connection.commit()
+            logger.debug(f"Image message saved: {sender_id} -> {receiver_id}")
+        except mysql.connector.Error as err:
+            logger.error(f"Error saving image message: {err}")
+
+    def save_voice_message(self, sender_id, receiver_id, voice_data, filename):
+        """Lưu tin nhắn voice vào database"""
+        try:
+            query = """
+                    INSERT INTO chat_messages (sender_id, receiver_id, message, is_voice, voice_data)
+                    VALUES (%s, %s, %s, %s, %s)
+                    """
+            self.cursor.execute(query, (sender_id, receiver_id, filename, True, voice_data))
+            self.connection.commit()
+            logger.debug(f"Voice message saved: {sender_id} -> {receiver_id}")
+        except mysql.connector.Error as err:
+            logger.error(f"Error saving voice message: {err}")
+
+
+    def get_chat_history(self, sender_id, receiver_id):
+        try:
+            query = """
+                    SELECT sender_id, message, timestamp, is_image, image_data, is_voice, voice_data
+                    FROM chat_messages
+                    WHERE (sender_id = %s AND receiver_id = %s)
+                       OR (sender_id = %s AND receiver_id = %s)
+                    ORDER BY timestamp ASC
+                    """
+            self.cursor.execute(query, (sender_id, receiver_id, receiver_id, sender_id))
+
+            history = []
+            for row in self.cursor.fetchall():
+                msg = {
+                    "sender_id": row[0],
+                    "sender_name": self.get_display_name(row[0]),
+                    "timestamp": str(row[2]),
+                    "is_image": bool(row[3]),
+                    "is_voice": bool(row[5])
+                }
+
+                if msg["is_image"]:
+                    msg["image_data"] = row[4]
+                    msg["message"] = row[1]  # filename
+                elif msg["is_voice"]:
+                    msg["voice_data"] = row[6]
+                    msg["message"] = row[1]  # filename
+                else:
+                    msg["message"] = row[1]
+
+                history.append(msg)
+
+            return history
+        except mysql.connector.Error as err:
+            logger.error(f"Error getting chat history: {err}")
+            return []
+
+    def get_recent_chats(self, user_id):
+        try:
+            query = """
+                    SELECT DISTINCT u2.id as user_id, u2.display_name, m.message as last_message
+                    FROM users u2
+                             LEFT JOIN chat_messages m ON (m.sender_id = u2.id AND m.receiver_id = %s)
+                        OR (m.sender_id = %s AND m.receiver_id = u2.id)
+                    WHERE u2.id != %s
+                    ORDER BY m.timestamp DESC
+                        LIMIT 10 \
+                    """
+            self.cursor.execute(query, (user_id, user_id, user_id))
+            return [
+                {
+                    "user_id": row[0],
+                    "display_name": row[1],
+                    "last_message": row[2] if row[2] else "Chưa có tin nhắn"
+                }
+                for row in self.cursor.fetchall()
+            ]
+        except mysql.connector.Error as err:
+            logger.error(f"Error getting recent chats: {err}")
+            return []
+
+    def __del__(self):
+        try:
+            if hasattr(self, 'cursor') and self.cursor:
+                self.cursor.close()
+            if hasattr(self, 'connection') and self.connection:
+                self.connection.close()
+            logger.info("Database connection closed")
+        except Exception as e:
+            logger.error(f"Error closing database connection: {e}")
