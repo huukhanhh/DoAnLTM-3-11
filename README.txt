@@ -1,2 +1,2 @@
 chạy server:  D:\Python\python.exe D:\Python_VsCode\Mid_Tern\server\run_server.py
-chạy client: cd
+chạy client:  D:\Python\python.exe D:\Python_VsCode\Mid_Tern\client\run_client.py

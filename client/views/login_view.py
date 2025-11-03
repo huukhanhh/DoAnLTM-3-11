@@ -211,6 +211,7 @@ class LoginView(QtWidgets.QWidget):
         try:
             client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             client_socket.connect((SERVER_CONFIG["host"], SERVER_CONFIG["port"]))
+            client_socket.settimeout(10)
 
             request = {
                 "action": "login",
@@ -218,7 +219,8 @@ class LoginView(QtWidgets.QWidget):
                 "password": password
             }
             client_socket.send(json.dumps(request).encode('utf-8'))
-            response = json.loads(client_socket.recv(1024).decode('utf-8'))
+            # Tăng buffer để nhận avatar (base64) từ server
+            response = json.loads(client_socket.recv(10485760).decode('utf-8'))
 
             if response.get("status") == "success":
                 user_id = response.get("user_id")

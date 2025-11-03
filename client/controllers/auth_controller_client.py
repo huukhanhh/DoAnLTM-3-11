@@ -12,6 +12,7 @@ class AuthController:
         self.host = host
         self.port = port
         self.client_socket = socket
+        self.current_user_id = None
         self.reconnect_attempts = 3
         self.message_queue = Queue()
         self.response_queue = Queue()
@@ -59,6 +60,16 @@ class AuthController:
                 self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.client_socket.connect((self.host, self.port))
                 print("Kết nối lại thành công")
+                # Gửi resume session nếu đã có user_id
+                try:
+                    if self.current_user_id is not None:
+                        resume_req = {"action": "resume_session", "user_id": self.current_user_id}
+                        self.client_socket.send(json.dumps(resume_req).encode('utf-8'))
+                        # nhận phản hồi (nhỏ)
+                        data = self.client_socket.recv(4096)
+                        _ = json.loads(data.decode('utf-8'))
+                except Exception:
+                    pass
                 return True
             except socket.error as e:
                 print(f"Thử kết nối lại: {str(e)}")
@@ -127,6 +138,27 @@ class AuthController:
         request = {"action": "get_chat_history", "receiver_id": receiver_id}
         response = self.send_request(request)
         return response.get("history", [])
+
+    # === Profile APIs ===
+    def get_profile(self):
+        request = {"action": "get_profile"}
+        return self.send_request(request)
+
+    def update_profile(self, display_name=None, avatar=None):
+        request = {"action": "update_profile"}
+        if display_name is not None:
+            request["display_name"] = display_name
+        if avatar is not None:
+            request["avatar"] = avatar
+        return self.send_request(request)
+
+    def change_password(self, old_password, new_password):
+        request = {
+            "action": "change_password",
+            "old_password": old_password,
+            "new_password": new_password
+        }
+        return self.send_request(request)
 
     def get_incoming_message(self, timeout=0.1):
         """Lấy tin nhắn incoming từ queue (non-blocking)"""

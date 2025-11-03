@@ -7,6 +7,11 @@ DATABASE_CONFIG = {
 }
 
 SERVER_CONFIG = {
-    "host": "192.168.110.75",  # IP chung
+    "host": "192.168.110.44",  # IP chung
     "port": 5000         # Port cho socket TCP
+}
+
+MULTICAST_CONFIG = {
+    "group": "239.0.0.1",  # Multicast IP (phạm vi local)
+    "port": 5007
 }

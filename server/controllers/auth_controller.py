@@ -1,4 +1,4 @@
-# server/controllers/auth_controller_client.py
+# server/controllers/auth_controller.py
 import json
 import socket
 from config.config import SERVER_CONFIG
@@ -86,6 +86,7 @@ class ChatController:
 
                                 response["user_id"] = user_id
                                 response["display_name"] = self.model.get_display_name(user_id)
+                                response["avatar"] = self.model.get_avatar(user_id)
                                 logger.info(f"User {user_id} logged in")
 
                                 if user_id in self.offline_messages:
@@ -132,6 +133,7 @@ class ChatController:
                                 "action": "message",
                                 "sender_id": sender_id,
                                 "sender_name": self.model.get_display_name(sender_id),
+                                "sender_avatar": self.model.get_avatar(sender_id),
                                 "receiver_id": receiver_id,
                                 "message": message,
                                 "is_image": False
@@ -171,6 +173,7 @@ class ChatController:
                                 "action": "message",
                                 "sender_id": sender_id,
                                 "sender_name": self.model.get_display_name(sender_id),
+                                "sender_avatar": self.model.get_avatar(sender_id),
                                 "receiver_id": receiver_id,
                                 "voice_data": voice_data,
                                 "is_voice": True
@@ -215,6 +218,7 @@ class ChatController:
                                 "action": "message",
                                 "sender_id": sender_id,
                                 "sender_name": self.model.get_display_name(sender_id),
+                                "sender_avatar": self.model.get_avatar(sender_id),
                                 "receiver_id": receiver_id,
                                 "image_data": image_data,
                                 "is_image": True
@@ -239,6 +243,47 @@ class ChatController:
                             response = {"status": "success", "message": "Ảnh đã gửi"}
                         else:
                             response = {"status": "error", "message": "Không xác định user"}
+
+                    # Hồ sơ người dùng
+                    elif action == "get_profile":
+                        if client_socket in self.clients:
+                            user_id = self.clients[client_socket]
+                            response = self.model.get_profile(user_id)
+                        else:
+                            response = {"status": "error", "message": "Không xác định user"}
+
+                    elif action == "update_profile":
+                        if client_socket in self.clients:
+                            user_id = self.clients[client_socket]
+                            response = self.model.update_profile(
+                                user_id,
+                                display_name=request.get("display_name"),
+                                avatar_data=request.get("avatar")
+                            )
+                        else:
+                            response = {"status": "error", "message": "Không xác định user"}
+
+                    elif action == "change_password":
+                        if client_socket in self.clients:
+                            user_id = self.clients[client_socket]
+                            response = self.model.change_password(
+                                user_id,
+                                request.get("old_password", ""),
+                                request.get("new_password", "")
+                            )
+                        else:
+                            response = {"status": "error", "message": "Không xác định user"}
+
+                    # Khôi phục session khi client reconnect
+                    elif action == "resume_session":
+                        user_id = request.get("user_id")
+                        if user_id:
+                            with self.lock:
+                                self.clients[client_socket] = user_id
+                                self.user_sockets[user_id] = client_socket
+                            response = {"status": "success", "message": "Đã khôi phục phiên"}
+                        else:
+                            response = {"status": "error", "message": "Thiếu user_id"}
 
                     time.sleep(0.05)
                     if not self.send_to_client(client_socket, response):

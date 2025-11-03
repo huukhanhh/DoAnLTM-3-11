@@ -37,11 +37,24 @@ class UserModel:
             logger.error(f"Error getting display_name: {err}")
             return "Unknown"
 
+    def get_avatar(self, user_id):
+        try:
+            query = "SELECT avatar_data FROM users WHERE id = %s"
+            self.cursor.execute(query, (user_id,))
+            result = self.cursor.fetchone()
+            return result[0] if result and result[0] else None
+        except mysql.connector.Error as err:
+            logger.error(f"Error getting avatar: {err}")
+            return None
+
     def get_all_users(self):
         try:
-            query = "SELECT id, display_name FROM users"
+            query = "SELECT id, display_name, avatar_data FROM users"
             self.cursor.execute(query)
-            return [{"user_id": row[0], "display_name": row[1]} for row in self.cursor.fetchall()]
+            return [
+                {"user_id": row[0], "display_name": row[1], "avatar": row[2]}
+                for row in self.cursor.fetchall()
+            ]
         except mysql.connector.Error as err:
             logger.error(f"Error getting all users: {err}")
             return []
@@ -71,16 +84,16 @@ class UserModel:
 
     def login_user(self, email, password):
         try:
-            query = "SELECT id, display_name, password_hash FROM users WHERE email = %s"
+            query = "SELECT id, display_name, password_hash, avatar_data FROM users WHERE email = %s"
             self.cursor.execute(query, (email,))
             result = self.cursor.fetchone()
 
             if result:
-                user_id, display_name, password_hash = result
+                user_id, display_name, password_hash, avatar_data = result
                 try:
                     if bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8')):
                         logger.info(f"User logged in: {email}")
-                        return {"status": "success", "user_id": user_id, "display_name": display_name}
+                        return {"status": "success", "user_id": user_id, "display_name": display_name, "avatar": avatar_data}
                     else:
                         return {"status": "error", "message": "Mật khẩu sai"}
                 except ValueError as e:
@@ -144,6 +157,7 @@ class UserModel:
                 msg = {
                     "sender_id": row[0],
                     "sender_name": self.get_display_name(row[0]),
+                    "sender_avatar": self.get_avatar(row[0]),
                     "timestamp": str(row[2]),
                     "is_image": bool(row[3]),
                     "is_voice": bool(row[5])
@@ -168,7 +182,7 @@ class UserModel:
     def get_recent_chats(self, user_id):
         try:
             query = """
-                    SELECT DISTINCT u2.id as user_id, u2.display_name, m.message as last_message
+                    SELECT DISTINCT u2.id as user_id, u2.display_name, u2.avatar_data, m.message as last_message
                     FROM users u2
                              LEFT JOIN chat_messages m ON (m.sender_id = u2.id AND m.receiver_id = %s)
                         OR (m.sender_id = %s AND m.receiver_id = u2.id)
@@ -181,13 +195,71 @@ class UserModel:
                 {
                     "user_id": row[0],
                     "display_name": row[1],
-                    "last_message": row[2] if row[2] else "Chưa có tin nhắn"
+                    "avatar": row[2],
+                    "last_message": row[3] if row[3] else "Chưa có tin nhắn"
                 }
                 for row in self.cursor.fetchall()
             ]
         except mysql.connector.Error as err:
             logger.error(f"Error getting recent chats: {err}")
             return []
+
+    def get_profile(self, user_id):
+        try:
+            query = "SELECT display_name, email, avatar_data FROM users WHERE id = %s"
+            self.cursor.execute(query, (user_id,))
+            result = self.cursor.fetchone()
+            if not result:
+                return {"status": "error", "message": "Không tìm thấy người dùng"}
+            return {
+                "status": "success",
+                "display_name": result[0],
+                "email": result[1],
+                "avatar": result[2]
+            }
+        except mysql.connector.Error as err:
+            logger.error(f"Error getting profile: {err}")
+            return {"status": "error", "message": f"Lỗi database: {err}"}
+
+    def update_profile(self, user_id, display_name=None, avatar_data=None):
+        try:
+            fields = []
+            values = []
+            if display_name is not None:
+                fields.append("display_name = %s")
+                values.append(display_name)
+            if avatar_data is not None:
+                fields.append("avatar_data = %s")
+                values.append(avatar_data)
+            if not fields:
+                return {"status": "error", "message": "Không có dữ liệu cập nhật"}
+            values.append(user_id)
+            query = f"UPDATE users SET {', '.join(fields)} WHERE id = %s"
+            self.cursor.execute(query, tuple(values))
+            self.connection.commit()
+            return {"status": "success", "message": "Cập nhật thành công"}
+        except mysql.connector.Error as err:
+            logger.error(f"Error updating profile: {err}")
+            return {"status": "error", "message": f"Lỗi database: {err}"}
+
+    def change_password(self, user_id, old_password, new_password):
+        try:
+            # Lấy hash hiện tại
+            self.cursor.execute("SELECT password_hash FROM users WHERE id = %s", (user_id,))
+            row = self.cursor.fetchone()
+            if not row:
+                return {"status": "error", "message": "Không tìm thấy người dùng"}
+            current_hash = row[0]
+            if not bcrypt.checkpw(old_password.encode('utf-8'), current_hash.encode('utf-8')):
+                return {"status": "error", "message": "Mật khẩu hiện tại không đúng"}
+
+            new_hash = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            self.cursor.execute("UPDATE users SET password_hash = %s WHERE id = %s", (new_hash, user_id))
+            self.connection.commit()
+            return {"status": "success", "message": "Đổi mật khẩu thành công"}
+        except mysql.connector.Error as err:
+            logger.error(f"Error changing password: {err}")
+            return {"status": "error", "message": f"Lỗi database: {err}"}
 
     def __del__(self):
         try:

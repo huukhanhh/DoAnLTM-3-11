@@ -12,21 +12,23 @@ import pyaudio
 import tempfile
 from config.config import SERVER_CONFIG
 from client.controllers.auth_controller_client import AuthController
+from client.views.profile_view import ProfileDialog
 
 
 class ChatListItem(QtWidgets.QWidget):
     """Widget cho mỗi item trong danh sách chat"""
 
-    def __init__(self, user_id, display_name, last_message="", parent=None):
+    def __init__(self, user_id, display_name, last_message="", avatar_base64=None, parent=None):
         super().__init__(parent)
         self.user_id = user_id
         self.display_name = display_name
+        self.avatar_base64 = avatar_base64
 
         layout = QtWidgets.QHBoxLayout()
         layout.setContentsMargins(15, 10, 15, 10)
 
         # Avatar
-        avatar_label = QtWidgets.QLabel("👤")
+        avatar_label = QtWidgets.QLabel()
         avatar_label.setStyleSheet("""
             font-size: 32px;
             background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
@@ -39,6 +41,16 @@ class ChatListItem(QtWidgets.QWidget):
             max-height: 50px;
         """)
         avatar_label.setAlignment(QtCore.Qt.AlignCenter)
+        if self.avatar_base64:
+            try:
+                pix = QtGui.QPixmap()
+                pix.loadFromData(base64.b64decode(self.avatar_base64))
+                avatar_label.setPixmap(pix.scaled(50, 50, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+                avatar_label.setStyleSheet("border-radius:25px;")
+            except Exception:
+                avatar_label.setText("👤")
+        else:
+            avatar_label.setText("👤")
         layout.addWidget(avatar_label)
 
         # Info
@@ -232,7 +244,7 @@ class VoiceMessageWidget(QtWidgets.QWidget):
 
 
 class MainView(QtWidgets.QMainWindow):
-    message_received = QtCore.pyqtSignal(str, str, str)  # message, sender_name, message_type
+    message_received = QtCore.pyqtSignal(str, str, str, int)  # message, sender_name, message_type, sender_id
 
     def __init__(self, app, socket, user_id, display_name):
         super().__init__()
@@ -261,9 +273,10 @@ class MainView(QtWidgets.QMainWindow):
         top_bar_layout = QtWidgets.QHBoxLayout(top_bar)
         top_bar_layout.setContentsMargins(10, 5, 10, 5)
 
-        user_label = QtWidgets.QLabel(f"👤 {self.display_name}")
-        user_label.setStyleSheet("color: white; font-size: 15px; font-weight: bold;")
-        top_bar_layout.addWidget(user_label)
+        self.user_label = QtWidgets.QLabel(f"👤 {self.display_name}")
+        self.user_label.setStyleSheet("color: white; font-size: 15px; font-weight: bold;")
+        self.user_label.mousePressEvent = self.open_profile_dialog
+        top_bar_layout.addWidget(self.user_label)
         top_bar_layout.addStretch()
 
         self.logout_button = QtWidgets.QPushButton("⬅")
@@ -441,9 +454,12 @@ class MainView(QtWidgets.QMainWindow):
         self.splitter.setStretchFactor(1, 3)
 
         self.controller = AuthController(self.socket)
+        self.controller.current_user_id = self.user_id
         self.message_received.connect(self.display_incoming_message)
         self.current_receiver_id = None
         self.current_receiver_name = None
+        self.self_avatar = None
+        self.user_avatars = {}  # user_id -> base64
 
         # Biến cho ghi âm
         self.is_recording = False
@@ -452,6 +468,8 @@ class MainView(QtWidgets.QMainWindow):
         self.stream = None
         self.recording_thread = None
 
+        # Load avatars and users
+        self.refresh_self_profile()
         self.load_users()
         threading.Thread(target=self.check_incoming_messages, daemon=True).start()
 
@@ -479,7 +497,7 @@ class MainView(QtWidgets.QMainWindow):
             }}
         """
 
-    def create_message_bubble(self, message, sender_name, is_self=False, is_image=False, is_voice=False):
+    def create_message_bubble(self, message, sender_name, is_self=False, is_image=False, is_voice=False, avatar_base64=None):
         """Tạo bubble tin nhắn giống Zalo - đã thêm hỗ trợ voice"""
         bubble_widget = QtWidgets.QWidget()
         bubble_layout = QtWidgets.QHBoxLayout(bubble_widget)
@@ -487,7 +505,7 @@ class MainView(QtWidgets.QMainWindow):
         bubble_layout.setSpacing(8)
 
         # Avatar
-        avatar = QtWidgets.QLabel("👤" if not is_self else "😊")
+        avatar = QtWidgets.QLabel()
         avatar.setStyleSheet(f"""
             font-size: 28px;
             background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
@@ -501,6 +519,16 @@ class MainView(QtWidgets.QMainWindow):
             max-height: 40px;
         """)
         avatar.setAlignment(QtCore.Qt.AlignCenter)
+        if avatar_base64:
+            try:
+                pix = QtGui.QPixmap()
+                pix.loadFromData(base64.b64decode(avatar_base64))
+                avatar.setPixmap(pix.scaled(40, 40, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+                avatar.setStyleSheet("border-radius:20px;")
+            except Exception:
+                avatar.setText("👤" if not is_self else "😊")
+        else:
+            avatar.setText("👤" if not is_self else "😊")
 
         # Message content
         content_widget = QtWidgets.QWidget()
@@ -567,10 +595,10 @@ class MainView(QtWidgets.QMainWindow):
 
         return bubble_widget
 
-    def add_message_to_chat(self, message, sender_name, is_self=False, is_image=False, is_voice=False):
+    def add_message_to_chat(self, message, sender_name, is_self=False, is_image=False, is_voice=False, avatar_base64=None):
         """Thêm tin nhắn vào chat - đã thêm hỗ trợ voice"""
         try:
-            bubble = self.create_message_bubble(message, sender_name, is_self, is_image, is_voice)
+            bubble = self.create_message_bubble(message, sender_name, is_self, is_image, is_voice, avatar_base64)
             self.chat_messages_layout.insertWidget(self.chat_messages_layout.count() - 1, bubble)
 
             # Auto scroll
@@ -595,16 +623,19 @@ class MainView(QtWidgets.QMainWindow):
                 if item.widget() and not isinstance(item, QtWidgets.QSpacerItem):
                     item.widget().deleteLater()
 
+            self.user_avatars = {}
             for user in self.users:
                 if user["user_id"] != self.user_id:
                     chat_item = ChatListItem(
                         user["user_id"],
                         user["display_name"],
-                        "Nhấn để bắt đầu chat"
+                        "Nhấn để bắt đầu chat",
+                        user.get("avatar")
                     )
                     chat_item.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
                     chat_item.mousePressEvent = lambda e, uid=user["user_id"], name=user["display_name"]: self.select_chat_by_id(uid, name)
                     self.chat_list_layout.insertWidget(self.chat_list_layout.count() - 1, chat_item)
+                self.user_avatars[user["user_id"]] = user.get("avatar")
 
             if len(self.users) > 1:
                 first_user = next((u for u in self.users if u["user_id"] != self.user_id), None)
@@ -636,6 +667,7 @@ class MainView(QtWidgets.QMainWindow):
                 for msg in history:
                     sender_id = msg.get("sender_id")
                     sender_name = msg.get("sender_name", "Unknown")
+                    sender_avatar = msg.get("sender_avatar")
                     is_image = bool(msg.get("is_image", False))
                     is_voice = bool(msg.get("is_voice", False))
                     is_self = sender_id == self.user_id
@@ -643,15 +675,15 @@ class MainView(QtWidgets.QMainWindow):
                     if is_image:
                         image_data = msg.get("image_data")
                         if image_data:
-                            self.add_message_to_chat(image_data, sender_name, is_self, True, False)
+                            self.add_message_to_chat(image_data, sender_name, is_self, True, False, self.self_avatar if is_self else sender_avatar)
                     elif is_voice:
                         voice_data = msg.get("voice_data")
                         if voice_data:
-                            self.add_message_to_chat(voice_data, sender_name, is_self, False, True)
+                            self.add_message_to_chat(voice_data, sender_name, is_self, False, True, self.self_avatar if is_self else sender_avatar)
                     else:
                         message_text = msg.get("message", "")
                         if message_text:
-                            self.add_message_to_chat(message_text, sender_name, is_self, False, False)
+                            self.add_message_to_chat(message_text, sender_name, is_self, False, False, self.self_avatar if is_self else sender_avatar)
         except Exception as e:
             print(f"Lỗi khi load chat: {str(e)}")
             import traceback
@@ -776,21 +808,22 @@ class MainView(QtWidgets.QMainWindow):
 
                     if is_voice:
                         msg_content = message.get('voice_data', '')
-                        self.message_received.emit(msg_content, sender_name, 'voice')
+                        self.message_received.emit(msg_content, sender_name, 'voice', sender_id)
                     elif is_image:
                         msg_content = message.get('image_data', '')
-                        self.message_received.emit(msg_content, sender_name, 'image')
+                        self.message_received.emit(msg_content, sender_name, 'image', sender_id)
                     else:
                         msg_content = message.get('message', '')
-                        self.message_received.emit(msg_content, sender_name, 'text')
+                        self.message_received.emit(msg_content, sender_name, 'text', sender_id)
             except Exception as e:
                 print(f"Lỗi check message: {str(e)}")
                 break
 
-    def display_incoming_message(self, message, sender_name, message_type):
+    def display_incoming_message(self, message, sender_name, message_type, sender_id):
         is_image = (message_type == 'image')
         is_voice = (message_type == 'voice')
-        self.add_message_to_chat(message, sender_name, is_self=False, is_image=is_image, is_voice=is_voice)
+        avatar = self.user_avatars.get(sender_id)
+        self.add_message_to_chat(message, sender_name, is_self=False, is_image=is_image, is_voice=is_voice, avatar_base64=avatar)
 
     def logout(self):
         self.controller.stop()
@@ -931,3 +964,24 @@ class MainView(QtWidgets.QMainWindow):
             "filename": filename
         }
         return self.controller.send_request(request, timeout=30)
+
+    # === PROFILE ===
+    def open_profile_dialog(self, event=None):
+        try:
+            dialog = ProfileDialog(self.controller, self.display_name, self.self_avatar, self)
+            if dialog.exec_():
+                # Refresh profile and users after successful update
+                self.refresh_self_profile()
+                self.user_label.setText(f"👤 {self.display_name}")
+                self.load_users()
+        except Exception as e:
+            print(f"Lỗi mở hộp thoại hồ sơ: {e}")
+
+    def refresh_self_profile(self):
+        try:
+            resp = self.controller.get_profile()
+            if resp.get('status') == 'success':
+                self.display_name = resp.get('display_name', self.display_name)
+                self.self_avatar = resp.get('avatar')
+        except Exception as e:
+            print(f"Không thể tải hồ sơ: {e}")
