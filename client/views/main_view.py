@@ -1,5 +1,10 @@
 # client/views/main_view.py
 from PyQt5 import QtWidgets, QtCore, QtGui, QtMultimedia
+try:
+    from PyQt5 import QtMultimediaWidgets
+    HAS_VIDEO_WIDGET = True
+except ImportError:
+    HAS_VIDEO_WIDGET = False
 import sys
 import json
 import socket
@@ -10,6 +15,8 @@ import io
 import wave
 import pyaudio
 import tempfile
+import subprocess
+import platform
 from config.config import SERVER_CONFIG
 from client.controllers.auth_controller_client import AuthController
 from client.views.profile_view import ProfileDialog
@@ -410,6 +417,12 @@ class MainView(QtWidgets.QMainWindow):
         self.image_button.clicked.connect(self.send_image)
         input_layout.addWidget(self.image_button)
 
+        self.video_button = QtWidgets.QPushButton("🎬")
+        self.video_button.setToolTip("Gửi video")
+        self.video_button.setStyleSheet(self._get_button_style("#8e44ad", "#9b59b6"))
+        self.video_button.clicked.connect(self.send_video)
+        input_layout.addWidget(self.video_button)
+
         self.emoji_button = QtWidgets.QPushButton("😊")
         self.emoji_button.setToolTip("Chọn emoji")
         self.emoji_button.setStyleSheet(self._get_button_style("#f093fb", "#f5576c"))
@@ -497,8 +510,8 @@ class MainView(QtWidgets.QMainWindow):
             }}
         """
 
-    def create_message_bubble(self, message, sender_name, is_self=False, is_image=False, is_voice=False, avatar_base64=None):
-        """Tạo bubble tin nhắn giống Zalo - đã thêm hỗ trợ voice"""
+    def create_message_bubble(self, message, sender_name, is_self=False, is_image=False, is_voice=False, is_video=False, avatar_base64=None):
+        """Tạo bubble tin nhắn giống Zalo - đã thêm hỗ trợ voice và video"""
         bubble_widget = QtWidgets.QWidget()
         bubble_layout = QtWidgets.QHBoxLayout(bubble_widget)
         bubble_layout.setContentsMargins(0, 0, 0, 0)
@@ -545,6 +558,15 @@ class MainView(QtWidgets.QMainWindow):
             # Voice message widget
             voice_widget = VoiceMessageWidget(message, is_self)
             content_layout.addWidget(voice_widget)
+        elif is_video:
+            # Hiển thị video với thumbnail và button để mở
+            # Dùng VideoMessageWidget
+            video_widget = self.VideoMessageWidget(message, is_self)
+            content_layout.addWidget(video_widget)
+            # Lưu để cleanup
+            video_widget.temp_file = getattr(video_widget, 'temp_file', None)
+            
+            
         elif is_image:
             # Hiển thị ảnh
             image_label = QtWidgets.QLabel()
@@ -595,10 +617,10 @@ class MainView(QtWidgets.QMainWindow):
 
         return bubble_widget
 
-    def add_message_to_chat(self, message, sender_name, is_self=False, is_image=False, is_voice=False, avatar_base64=None):
-        """Thêm tin nhắn vào chat - đã thêm hỗ trợ voice"""
+    def add_message_to_chat(self, message, sender_name, is_self=False, is_image=False, is_voice=False, is_video=False, avatar_base64=None):
+        """Thêm tin nhắn vào chat - đã thêm hỗ trợ voice và video"""
         try:
-            bubble = self.create_message_bubble(message, sender_name, is_self, is_image, is_voice, avatar_base64)
+            bubble = self.create_message_bubble(message, sender_name, is_self, is_image, is_voice, is_video, avatar_base64)
             self.chat_messages_layout.insertWidget(self.chat_messages_layout.count() - 1, bubble)
 
             # Auto scroll
@@ -655,10 +677,18 @@ class MainView(QtWidgets.QMainWindow):
         for i in reversed(range(self.chat_messages_layout.count())):
             item = self.chat_messages_layout.itemAt(i)
             if item.widget() and not isinstance(item, QtWidgets.QSpacerItem):
-                # Dọn dẹp voice widgets trước khi xóa
+                # Dọn dẹp voice và video widgets trước khi xóa
                 widget = item.widget()
                 if hasattr(widget, 'cleanup'):
                     widget.cleanup()
+                # Cleanup video temp files
+                if hasattr(widget, 'temp_file') and widget.temp_file and os.path.exists(widget.temp_file):
+                    try:
+                        if hasattr(widget, 'media_player'):
+                            widget.media_player.stop()
+                        os.remove(widget.temp_file)
+                    except Exception as e:
+                        print(f"Không thể xóa file video tạm: {e}")
                 widget.deleteLater()
 
         try:
@@ -670,20 +700,25 @@ class MainView(QtWidgets.QMainWindow):
                     sender_avatar = msg.get("sender_avatar")
                     is_image = bool(msg.get("is_image", False))
                     is_voice = bool(msg.get("is_voice", False))
+                    is_video = bool(msg.get("is_video", False))
                     is_self = sender_id == self.user_id
 
                     if is_image:
                         image_data = msg.get("image_data")
                         if image_data:
-                            self.add_message_to_chat(image_data, sender_name, is_self, True, False, self.self_avatar if is_self else sender_avatar)
+                            self.add_message_to_chat(image_data, sender_name, is_self, True, False, False, self.self_avatar if is_self else sender_avatar)
                     elif is_voice:
                         voice_data = msg.get("voice_data")
                         if voice_data:
-                            self.add_message_to_chat(voice_data, sender_name, is_self, False, True, self.self_avatar if is_self else sender_avatar)
+                            self.add_message_to_chat(voice_data, sender_name, is_self, False, True, False, self.self_avatar if is_self else sender_avatar)
+                    elif is_video:
+                        video_data = msg.get("video_data")
+                        if video_data:
+                            self.add_message_to_chat(video_data, sender_name, is_self, False, False, True, self.self_avatar if is_self else sender_avatar)
                     else:
                         message_text = msg.get("message", "")
                         if message_text:
-                            self.add_message_to_chat(message_text, sender_name, is_self, False, False, self.self_avatar if is_self else sender_avatar)
+                            self.add_message_to_chat(message_text, sender_name, is_self, False, False, False, self.self_avatar if is_self else sender_avatar)
         except Exception as e:
             print(f"Lỗi khi load chat: {str(e)}")
             import traceback
@@ -701,7 +736,7 @@ class MainView(QtWidgets.QMainWindow):
         try:
             response = self.controller.send_message(self.current_receiver_id, message)
             if response and response.get("status") == "success":
-                self.add_message_to_chat(message, "Bạn", is_self=True, is_image=False, is_voice=False)
+                self.add_message_to_chat(message, "Bạn", is_self=True, is_image=False, is_voice=False, is_video=False)
                 self.message_input.clear()
             else:
                 error_msg = response.get('message', 'Không rõ lỗi') if response else 'Không nhận được phản hồi'
@@ -742,12 +777,100 @@ class MainView(QtWidgets.QMainWindow):
                 response = self.controller.send_request(request)
 
                 if response.get("status") == "success":
-                    self.add_message_to_chat(image_base64, "Bạn", is_self=True, is_image=True, is_voice=False)
+                    self.add_message_to_chat(image_base64, "Bạn", is_self=True, is_image=True, is_voice=False, is_video=False)
                 else:
                     QtWidgets.QMessageBox.warning(self, "Lỗi", "Không thể gửi ảnh!")
 
             except Exception as e:
                 QtWidgets.QMessageBox.warning(self, "Lỗi", f"Lỗi gửi ảnh: {str(e)}")
+
+    def send_video(self):
+        """Gửi video"""
+        if not self.current_receiver_id:
+            QtWidgets.QMessageBox.warning(self, "Cảnh báo", "Vui lòng chọn người nhận!")
+            return
+
+        file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            "Chọn video",
+            "",
+            "Video Files (*.mp4 *.avi *.mov *.mkv *.wmv *.flv *.webm)"
+        )
+
+        if file_path:
+            try:
+                # Kiểm tra kích thước file (giới hạn 50MB để tối ưu)
+                file_size = os.path.getsize(file_path)
+                max_size = 50 * 1024 * 1024  # 50MB
+                
+                if file_size > max_size:
+                    reply = QtWidgets.QMessageBox.question(
+                        self, 
+                        "Cảnh báo", 
+                        f"Video có kích thước lớn ({file_size / (1024*1024):.1f}MB). "
+                        "Gửi video lớn có thể mất nhiều thời gian. Bạn có muốn tiếp tục?",
+                        QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+                    )
+                    if reply == QtWidgets.QMessageBox.No:
+                        return
+
+                # Hiển thị progress dialog
+                progress = QtWidgets.QProgressDialog("Đang xử lý video...", "Hủy", 0, 100, self)
+                progress.setWindowModality(QtCore.Qt.WindowModal)
+                progress.setValue(0)
+                progress.show()
+                QtWidgets.QApplication.processEvents()
+
+                # Đọc và encode video (tối ưu: đọc theo chunks để tránh memory overflow)
+                progress.setValue(10)
+                QtWidgets.QApplication.processEvents()
+                
+                chunk_size = 1024 * 1024  # 1MB chunks để tối ưu memory
+                total_chunks = (file_size + chunk_size - 1) // chunk_size
+                
+                # Sử dụng list comprehension với generator để tối ưu memory
+                chunks = []
+                chunk_num = 0
+                with open(file_path, 'rb') as video_file:
+                    while True:
+                        chunk = video_file.read(chunk_size)
+                        if not chunk:
+                            break
+                        # Encode từng chunk để tránh load toàn bộ vào memory
+                        chunks.append(base64.b64encode(chunk).decode('utf-8'))
+                        chunk_num += 1
+                        progress.setValue(10 + int((chunk_num / total_chunks) * 70))
+                        QtWidgets.QApplication.processEvents()
+                
+                # Join tất cả chunks
+                video_base64 = ''.join(chunks)
+                # Giải phóng memory ngay sau khi join
+                del chunks
+
+                progress.setValue(90)
+                QtWidgets.QApplication.processEvents()
+
+                # Gửi qua controller
+                request = {
+                    "action": "send_video",
+                    "receiver_id": self.current_receiver_id,
+                    "video_data": video_base64,
+                    "filename": os.path.basename(file_path)
+                }
+                response = self.controller.send_request(request, timeout=300)  # 5 phút cho video lớn
+
+                progress.setValue(100)
+                progress.close()
+
+                if response.get("status") == "success":
+                    self.add_message_to_chat(video_base64, "Bạn", is_self=True, is_image=False, is_voice=False, is_video=True)
+                else:
+                    QtWidgets.QMessageBox.warning(self, "Lỗi", "Không thể gửi video!")
+
+            except Exception as e:
+                QtWidgets.QMessageBox.warning(self, "Lỗi", f"Lỗi gửi video: {str(e)}")
+                import traceback
+                traceback.print_exc()
 
     def show_emoji_picker(self):
         emojis = ["😊", "😂", "❤️", "👍", "🎉", "😍", "😢", "😎", "🔥", "💯",
@@ -805,6 +928,7 @@ class MainView(QtWidgets.QMainWindow):
                     sender_id = message.get('sender_id')
                     is_image = message.get('is_image', False)
                     is_voice = message.get('is_voice', False)
+                    is_video = message.get('is_video', False)
 
                     if is_voice:
                         msg_content = message.get('voice_data', '')
@@ -812,6 +936,9 @@ class MainView(QtWidgets.QMainWindow):
                     elif is_image:
                         msg_content = message.get('image_data', '')
                         self.message_received.emit(msg_content, sender_name, 'image', sender_id)
+                    elif is_video:
+                        msg_content = message.get('video_data', '')
+                        self.message_received.emit(msg_content, sender_name, 'video', sender_id)
                     else:
                         msg_content = message.get('message', '')
                         self.message_received.emit(msg_content, sender_name, 'text', sender_id)
@@ -822,21 +949,30 @@ class MainView(QtWidgets.QMainWindow):
     def display_incoming_message(self, message, sender_name, message_type, sender_id):
         is_image = (message_type == 'image')
         is_voice = (message_type == 'voice')
+        is_video = (message_type == 'video')
         avatar = self.user_avatars.get(sender_id)
-        self.add_message_to_chat(message, sender_name, is_self=False, is_image=is_image, is_voice=is_voice, avatar_base64=avatar)
+        self.add_message_to_chat(message, sender_name, is_self=False, is_image=is_image, is_voice=is_voice, is_video=is_video, avatar_base64=avatar)
 
     def logout(self):
         self.controller.stop()
         self.app.show_login()
 
     def closeEvent(self, event):
-        # Dọn dẹp tất cả voice widgets trước khi đóng
+        # Dọn dẹp tất cả voice và video widgets trước khi đóng
         for i in reversed(range(self.chat_messages_layout.count())):
             item = self.chat_messages_layout.itemAt(i)
             if item.widget():
                 widget = item.widget()
                 if hasattr(widget, 'cleanup'):
                     widget.cleanup()
+                # Cleanup video temp files
+                if hasattr(widget, 'temp_file') and widget.temp_file and os.path.exists(widget.temp_file):
+                    try:
+                        if hasattr(widget, 'media_player'):
+                            widget.media_player.stop()
+                        os.remove(widget.temp_file)
+                    except Exception as e:
+                        print(f"Không thể xóa file video tạm: {e}")
 
         self.controller.stop()
         event.accept()
@@ -942,7 +1078,7 @@ class MainView(QtWidgets.QMainWindow):
                 response = self.send_voice_message(self.current_receiver_id, voice_base64, "voice_message.wav")
 
                 if response and response.get("status") == "success":
-                    self.add_message_to_chat(voice_base64, "Bạn", is_self=True, is_voice=True)
+                    self.add_message_to_chat(voice_base64, "Bạn", is_self=True, is_image=False, is_voice=True, is_video=False)
                 else:
                     error_msg = response.get('message', 'Không rõ lỗi') if response else 'Không nhận được phản hồi'
                     QtWidgets.QMessageBox.warning(self, "Lỗi", f"Không thể gửi tin nhắn thoại: {error_msg}")
@@ -964,6 +1100,179 @@ class MainView(QtWidgets.QMainWindow):
             "filename": filename
         }
         return self.controller.send_request(request, timeout=30)
+
+
+
+    # === CÁC PHƯƠNG THỨC XỬ LÝ VIDEO MESSAGE ===
+    class VideoMessageWidget(QtWidgets.QWidget):
+        def __init__(self, video_data_base64, is_self=False, parent=None):
+            global HAS_VIDEO_WIDGET
+            super().__init__(parent)
+            self.video_data = video_data_base64
+            self.is_self = is_self
+            
+            self.temp_file = None
+            self.media_player = QtMultimedia.QMediaPlayer()
+            self.is_playing = False
+
+            # Layout chính
+            layout = QtWidgets.QVBoxLayout(self)
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.setSpacing(5)
+
+            # Container video
+            self.video_container = QtWidgets.QWidget()
+            self.video_container.setStyleSheet("""
+                background-color: #000;
+                border-radius: 12px;
+                min-height: 200px;
+                max-height: 300px;
+            """)
+            container_layout = QtWidgets.QVBoxLayout(self.video_container)
+            container_layout.setContentsMargins(0, 0, 0, 0)
+
+            # QVideoWidget (chỉ dùng nếu có)
+            if HAS_VIDEO_WIDGET:
+                try:
+                    self.video_widget = QtMultimediaWidgets.QVideoWidget()
+                    self.video_widget.setStyleSheet("background-color: #000;")
+                    self.media_player.setVideoOutput(self.video_widget)
+                    container_layout.addWidget(self.video_widget)
+                except Exception as e:
+                    print(f"QVideoWidget lỗi: {e}")
+                    HAS_VIDEO_WIDGET = False
+
+            # Nếu không có QVideoWidget → dùng placeholder
+            if not HAS_VIDEO_WIDGET:
+                placeholder = QtWidgets.QLabel("Video")
+                placeholder.setAlignment(QtCore.Qt.AlignCenter)
+                placeholder.setStyleSheet("""
+                    color: white; font-size: 48px; background: #333;
+                    min-height: 200px; border-radius: 12px;
+                """)
+                container_layout.addWidget(placeholder)
+
+            layout.addWidget(self.video_container)
+
+            # Controls
+            controls = QtWidgets.QWidget()
+            controls.setStyleSheet("background: rgba(0,0,0,0.6); border-radius: 8px;")
+            controls_layout = QtWidgets.QHBoxLayout(controls)
+            controls_layout.setContentsMargins(10, 5, 10, 5)
+            controls_layout.setSpacing(10)
+
+            # Play/Pause button
+            self.play_button = QtWidgets.QPushButton("Play")
+            self.play_button.setFixedSize(40, 40)
+            self.play_button.setStyleSheet("""
+                QPushButton {
+                    background: rgba(255,255,255,0.3); color: white;
+                    border-radius: 20px; font-size: 16px;
+                }
+                QPushButton:hover { background: rgba(255,255,255,0.5); }
+            """)
+            self.play_button.clicked.connect(self.toggle_play)
+            controls_layout.addWidget(self.play_button)
+
+            # Progress bar
+            self.progress_bar = QtWidgets.QProgressBar()
+            self.progress_bar.setFixedHeight(6)
+            self.progress_bar.setTextVisible(False)
+            self.progress_bar.setStyleSheet("""
+                QProgressBar { background: #555; border-radius: 3px; }
+                QProgressBar::chunk { background: #4CAF50; border-radius: 3px; }
+            """)
+            controls_layout.addWidget(self.progress_bar, 1)
+
+            # Time label
+            self.time_label = QtWidgets.QLabel("0:00 / 0:00")
+            self.time_label.setStyleSheet("color: white; font-size: 12px;")
+            self.time_label.setFixedWidth(80)
+            controls_layout.addWidget(self.time_label)
+
+            layout.addWidget(controls)
+
+            # Timer cập nhật tiến trình
+            self.timer = QtCore.QTimer()
+            self.timer.timeout.connect(self.update_progress)
+
+            # Kết nối signal
+            self.media_player.positionChanged.connect(self.on_position_changed)
+            self.media_player.durationChanged.connect(self.on_duration_changed)
+            self.media_player.stateChanged.connect(self.on_state_changed)
+
+            # Tạo file tạm ngay khi khởi tạo
+            self.create_temp_file()
+
+        def create_temp_file(self):
+            """Tạo file tạm từ base64"""
+            try:
+                video_bytes = base64.b64decode(self.video_data)
+                import tempfile, hashlib
+                hash_name = hashlib.md5(self.video_data[:500].encode()).hexdigest()
+                self.temp_file = os.path.join(tempfile.gettempdir(), f"chat_video_{hash_name}.mp4")
+                
+                if not os.path.exists(self.temp_file):
+                    with open(self.temp_file, 'wb') as f:
+                        f.write(video_bytes)
+
+                # Set media
+                if HAS_VIDEO_WIDGET:
+                    content = QtMultimedia.QMediaContent(QtCore.QUrl.fromLocalFile(self.temp_file))
+                    self.media_player.setMedia(content)
+
+            except Exception as e:
+                print(f"Lỗi tạo file video tạm: {e}")
+
+        def toggle_play(self):
+            if self.is_playing:
+                self.media_player.pause()
+            else:
+                self.media_player.play()
+
+        def on_position_changed(self, pos):
+            if self.media_player.duration() > 0:
+                progress = int((pos / self.media_player.duration()) * 100)
+                self.progress_bar.setValue(progress)
+                self.update_time_label(pos, self.media_player.duration())
+
+        def on_duration_changed(self, duration):
+            self.update_time_label(0, duration)
+            self.progress_bar.setMaximum(100)
+
+        def on_state_changed(self, state):
+            if state == QtMultimedia.QMediaPlayer.PlayingState:
+                self.is_playing = True
+                self.play_button.setText("Pause")
+                self.timer.start(100)
+            elif state == QtMultimedia.QMediaPlayer.PausedState:
+                self.is_playing = False
+                self.play_button.setText("Play")
+                self.timer.stop()
+            elif state == QtMultimedia.QMediaPlayer.StoppedState:
+                self.is_playing = False
+                self.play_button.setText("Play")
+                self.timer.stop()
+                self.progress_bar.setValue(0)
+                self.time_label.setText("0:00 / 0:00")
+
+        def update_progress(self):
+            self.on_position_changed(self.media_player.position())
+
+        def update_time_label(self, pos_ms, dur_ms):
+            pos_sec = pos_ms // 1000
+            dur_sec = dur_ms // 1000
+            self.time_label.setText(f"{pos_sec//60}:{pos_sec%60:02d} / {dur_sec//60}:{dur_sec%60:02d}")
+
+        def cleanup(self):
+            """Dọn dẹp khi widget bị xóa"""
+            if self.media_player.state() == QtMultimedia.QMediaPlayer.PlayingState:
+                self.media_player.stop()
+            if self.temp_file and os.path.exists(self.temp_file):
+                try:
+                    os.remove(self.temp_file)
+                except:
+                    pass
 
     # === PROFILE ===
     def open_profile_dialog(self, event=None):

@@ -2,6 +2,7 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 import socket
 import json
+import struct
 import re
 from config.config import SERVER_CONFIG
 
@@ -249,8 +250,23 @@ class RegisterView(QtWidgets.QWidget):
                 "email": email,
                 "password": password
             }
-            client_socket.send(json.dumps(request).encode('utf-8'))
-            response = json.loads(client_socket.recv(1024).decode('utf-8'))
+            # Gửi với length prefix
+            data = json.dumps(request).encode('utf-8')
+            length = struct.pack('>I', len(data))
+            client_socket.send(length + data)
+            
+            # Nhận với length prefix
+            length_data = client_socket.recv(4)
+            if len(length_data) < 4:
+                raise socket.error("Không nhận đủ dữ liệu")
+            resp_length = struct.unpack('>I', length_data)[0]
+            resp_data = b''
+            while len(resp_data) < resp_length:
+                chunk = client_socket.recv(min(resp_length - len(resp_data), 4096))
+                if not chunk:
+                    raise socket.error("Kết nối bị đóng")
+                resp_data += chunk
+            response = json.loads(resp_data.decode('utf-8'))
             client_socket.close()
 
             if response.get("status") == "success":

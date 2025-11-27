@@ -3,6 +3,7 @@ import socket
 import json
 import threading
 import time
+import struct
 from config.config import SERVER_CONFIG
 from queue import Queue
 
@@ -19,17 +20,43 @@ class AuthController:
         self.running = True
         threading.Thread(target=self._receive_loop, daemon=True).start()
 
+    def _send_all(self, sock, data):
+        """Gửi tất cả dữ liệu, đảm bảo gửi đủ"""
+        total_sent = 0
+        while total_sent < len(data):
+            sent = sock.send(data[total_sent:])
+            if sent == 0:
+                raise socket.error("Socket connection broken")
+            total_sent += sent
+        return total_sent
+
+    def _recv_all(self, sock, length):
+        """Nhận đủ số bytes cần thiết"""
+        data = b''
+        while len(data) < length:
+            chunk = sock.recv(min(length - len(data), 10485760))  # 10MB chunks
+            if not chunk:
+                raise socket.error("Socket connection broken")
+            data += chunk
+        return data
+
     def _receive_loop(self):
         """Thread riêng để nhận tất cả dữ liệu từ server"""
         while self.running:
             try:
                 if self.client_socket and self.client_socket.fileno() != -1:
-                    # Tăng buffer cho ảnh
-                    data = self.client_socket.recv(10485760)  # 10MB
-                    if not data:
+                    # Nhận length prefix (4 bytes)
+                    length_data = self._recv_all(self.client_socket, 4)
+                    if not length_data:
                         print("Kết nối bị đóng bởi server")
                         break
-
+                    
+                    # Unpack length
+                    data_length = struct.unpack('>I', length_data)[0]
+                    
+                    # Nhận đủ dữ liệu
+                    data = self._recv_all(self.client_socket, data_length)
+                    
                     message = data.decode('utf-8')
                     response = json.loads(message)
 
@@ -64,10 +91,15 @@ class AuthController:
                 try:
                     if self.current_user_id is not None:
                         resume_req = {"action": "resume_session", "user_id": self.current_user_id}
-                        self.client_socket.send(json.dumps(resume_req).encode('utf-8'))
-                        # nhận phản hồi (nhỏ)
-                        data = self.client_socket.recv(4096)
-                        _ = json.loads(data.decode('utf-8'))
+                        data = json.dumps(resume_req).encode('utf-8')
+                        # Gửi với length prefix
+                        length = struct.pack('>I', len(data))
+                        self._send_all(self.client_socket, length + data)
+                        # Nhận phản hồi (nhỏ)
+                        length_data = self._recv_all(self.client_socket, 4)
+                        resp_length = struct.unpack('>I', length_data)[0]
+                        resp_data = self._recv_all(self.client_socket, resp_length)
+                        _ = json.loads(resp_data.decode('utf-8'))
                 except Exception:
                     pass
                 return True
@@ -87,9 +119,10 @@ class AuthController:
             while not self.response_queue.empty():
                 self.response_queue.get_nowait()
 
-            # Gửi request
+            # Gửi request với length prefix
             data = json.dumps(request).encode('utf-8')
-            self.client_socket.send(data)
+            length = struct.pack('>I', len(data))
+            self._send_all(self.client_socket, length + data)
 
             # Đợi response từ queue
             try:
@@ -130,6 +163,16 @@ class AuthController:
             "filename": filename
         }
         return self.send_request(request, timeout=30)  # Timeout lớn cho voice
+
+    def send_video(self, receiver_id, video_data, filename):
+        """Gửi video"""
+        request = {
+            "action": "send_video",
+            "receiver_id": receiver_id,
+            "video_data": video_data,
+            "filename": filename
+        }
+        return self.send_request(request, timeout=300)  # Timeout lớn cho video (5 phút)
 
 
 

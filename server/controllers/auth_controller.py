@@ -1,6 +1,7 @@
 # server/controllers/auth_controller.py
 import json
 import socket
+import struct
 from config.config import SERVER_CONFIG
 import logging
 import threading
@@ -33,11 +34,33 @@ class ChatController:
             logger.error(f"Không thể khởi tạo UserModel: {str(e)}")
             raise
 
+    def _send_all(self, sock, data):
+        """Gửi tất cả dữ liệu, đảm bảo gửi đủ"""
+        total_sent = 0
+        while total_sent < len(data):
+            sent = sock.send(data[total_sent:])
+            if sent == 0:
+                raise socket.error("Socket connection broken")
+            total_sent += sent
+        return total_sent
+
+    def _recv_all(self, sock, length):
+        """Nhận đủ số bytes cần thiết"""
+        data = b''
+        while len(data) < length:
+            chunk = sock.recv(min(length - len(data), 10485760))  # 10MB chunks
+            if not chunk:
+                raise socket.error("Socket connection broken")
+            data += chunk
+        return data
+
     def send_to_client(self, client_socket, message):
         try:
             if client_socket.fileno() != -1:
                 data = json.dumps(message).encode('utf-8')
-                client_socket.send(data)
+                # Gửi với length prefix
+                length = struct.pack('>I', len(data))
+                self._send_all(client_socket, length + data)
                 return True
         except Exception as e:
             logger.error(f"Lỗi gửi message: {str(e)}")
@@ -45,20 +68,36 @@ class ChatController:
         return False
 
     def handle_client(self, client_socket):
-        client_socket.settimeout(300)
+        client_socket.settimeout(600)  # Tăng timeout cho video lớn (10 phút)
         logger.info("New client session started")
         current_user_id = None
 
         try:
             while True:
                 try:
-                    # Tăng buffer size cho ảnh
-                    data = client_socket.recv(10485760).decode('utf-8')  # 10MB
-                    if not data:
+                    # Nhận length prefix (4 bytes)
+                    length_data = self._recv_all(client_socket, 4)
+                    if not length_data:
                         logger.info("No data received, closing connection")
                         break
-
-                    request = json.loads(data)
+                    
+                    # Unpack length
+                    data_length = struct.unpack('>I', length_data)[0]
+                    
+                    # Kiểm tra kích thước hợp lệ (tối đa 100MB)
+                    if data_length > 100 * 1024 * 1024:
+                        logger.error(f"Data too large: {data_length} bytes")
+                        self.send_to_client(
+                            client_socket,
+                            {"status": "error", "message": "Dữ liệu quá lớn"}
+                        )
+                        break
+                    
+                    # Nhận đủ dữ liệu
+                    data = self._recv_all(client_socket, data_length)
+                    message = data.decode('utf-8')
+                    
+                    request = json.loads(message)
                     action = request.get("action")
                     logger.debug(f"Received action: {action} from client")
 
@@ -241,6 +280,47 @@ class ChatController:
                                     logger.debug(f"User {receiver_id} offline, image saved")
 
                             response = {"status": "success", "message": "Ảnh đã gửi"}
+                        else:
+                            response = {"status": "error", "message": "Không xác định user"}
+
+                    elif action == "send_video":
+                        if client_socket in self.clients:
+                            sender_id = self.clients[client_socket]
+                            receiver_id = request.get("receiver_id")
+                            video_data = request.get("video_data")
+                            filename = request.get("filename", "video.mp4")
+
+                            # Lưu video vào database
+                            self.model.save_video_message(sender_id, receiver_id, video_data, filename)
+
+                            # Tạo message data
+                            msg_data = {
+                                "action": "message",
+                                "sender_id": sender_id,
+                                "sender_name": self.model.get_display_name(sender_id),
+                                "sender_avatar": self.model.get_avatar(sender_id),
+                                "receiver_id": receiver_id,
+                                "video_data": video_data,
+                                "is_video": True
+                            }
+
+                            # Gửi đến receiver
+                            with self.lock:
+                                if receiver_id in self.user_sockets:
+                                    receiver_socket = self.user_sockets[receiver_id]
+                                    if not self.send_to_client(receiver_socket, msg_data):
+                                        if receiver_id not in self.offline_messages:
+                                            self.offline_messages[receiver_id] = []
+                                        self.offline_messages[receiver_id].append(msg_data)
+                                    else:
+                                        logger.debug(f"Video sent to user {receiver_id}")
+                                else:
+                                    if receiver_id not in self.offline_messages:
+                                        self.offline_messages[receiver_id] = []
+                                    self.offline_messages[receiver_id].append(msg_data)
+                                    logger.debug(f"User {receiver_id} offline, video saved")
+
+                            response = {"status": "success", "message": "Video đã gửi"}
                         else:
                             response = {"status": "error", "message": "Không xác định user"}
 
